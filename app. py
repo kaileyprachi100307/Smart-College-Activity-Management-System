@@ -1,0 +1,319 @@
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+import sqlite3
+from datetime import datetime
+import pandas as pd
+
+app = Flask(__name__)
+app.secret_key = "college_activity_secret"
+
+DATABASE = "college_activity.db"
+
+
+# ---------------- DATABASE CONNECTION ----------------
+
+def get_db():
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+# ---------------- DATABASE INITIALIZATION ----------------
+
+def init_db():
+    connection = get_db()
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS student (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            enrollment TEXT UNIQUE NOT NULL,
+            branch TEXT NOT NULL,
+            semester INTEGER NOT NULL
+        )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            organizer TEXT,
+            date TEXT,
+            hours REAL DEFAULT 0,
+            certificate TEXT DEFAULT 'No',
+            certificate_id TEXT,
+            description TEXT,
+            FOREIGN KEY(student_id) REFERENCES student(id)
+        )
+    """)
+
+    # Create a demo student if database is empty
+    student = connection.execute(
+        "SELECT * FROM student LIMIT 1"
+    ).fetchone()
+
+    if student is None:
+        connection.execute("""
+            INSERT INTO student
+            (name, enrollment, branch, semester)
+            VALUES (?, ?, ?, ?)
+        """, (
+            "Demo Student",
+            "DEMO001",
+            "B.Tech CSE",
+            2
+        ))
+
+    connection.commit()
+    connection.close()
+
+
+# ---------------- DASHBOARD ----------------
+
+@app.route("/")
+def dashboard():
+
+    connection = get_db()
+
+    student = connection.execute(
+        "SELECT * FROM student LIMIT 1"
+    ).fetchone()
+
+    activities = connection.execute("""
+        SELECT *
+        FROM activities
+        WHERE student_id = ?
+        ORDER BY date DESC
+    """, (student["id"],)).fetchall()
+
+    total_activities = len(activities)
+
+    total_hours = sum(
+        float(activity["hours"] or 0)
+        for activity in activities
+    )
+
+    total_certificates = sum(
+        activity["certificate"] == "Yes"
+        for activity in activities
+    )
+
+    total_internships = sum(
+        activity["category"] == "Internship"
+        for activity in activities
+    )
+
+    connection.close()
+
+    stats = {
+        "activities": total_activities,
+        "hours": total_hours,
+        "certificates": total_certificates,
+        "internships": total_internships
+    }
+
+    return render_template(
+        "index.html",
+        student=student,
+        activities=activities,
+        stats=stats
+    )
+
+
+# ---------------- ADD ACTIVITY ----------------
+
+@app.route("/add", methods=["GET", "POST"])
+def add_activity():
+
+    if request.method == "POST":
+
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "").strip()
+        organizer = request.form.get("organizer", "").strip()
+        date = request.form.get("date", "").strip()
+        hours = request.form.get("hours", "0").strip()
+        certificate = request.form.get("certificate", "No")
+        certificate_id = request.form.get(
+            "certificate_id", ""
+        ).strip()
+        description = request.form.get(
+            "description", ""
+        ).strip()
+
+        # Validation
+        if not name or not category:
+            flash("Activity name and category are required.")
+            return redirect(url_for("add_activity"))
+
+        try:
+            hours = float(hours)
+
+            if hours < 0:
+                raise ValueError
+
+            if date:
+                datetime.strptime(date, "%Y-%m-%d")
+
+        except ValueError:
+            flash("Please enter valid hours and date.")
+            return redirect(url_for("add_activity"))
+
+        connection = get_db()
+
+        student = connection.execute(
+            "SELECT id FROM student LIMIT 1"
+        ).fetchone()
+
+        connection.execute("""
+            INSERT INTO activities
+            (
+                student_id,
+                name,
+                category,
+                organizer,
+                date,
+                hours,
+                certificate,
+                certificate_id,
+                description
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            student["id"],
+            name,
+            category,
+            organizer,
+            date,
+            hours,
+            certificate,
+            certificate_id,
+            description
+        ))
+
+        connection.commit()
+        connection.close()
+
+        flash("Activity added successfully!")
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("add.html")
+
+
+# ---------------- DELETE ACTIVITY ----------------
+
+@app.route("/delete/<int:activity_id>", methods=["POST"])
+def delete_activity(activity_id):
+
+    connection = get_db()
+
+    connection.execute(
+        "DELETE FROM activities WHERE id = ?",
+        (activity_id,)
+    )
+
+    connection.commit()
+    connection.close()
+
+    flash("Activity deleted successfully.")
+
+    return redirect(url_for("dashboard"))
+
+
+# ---------------- ANALYTICS ----------------
+
+@app.route("/report")
+def report():
+
+    connection = get_db()
+
+    records = connection.execute("""
+        SELECT *
+        FROM activities
+        ORDER BY date
+    """).fetchall()
+
+    connection.close()
+
+    data = [dict(record) for record in records]
+
+    dataframe = pd.DataFrame(data)
+
+    if dataframe.empty:
+
+        category_data = []
+        monthly_data = []
+        total_hours = 0
+        certificate_rate = 0
+
+    else:
+
+        total_hours = dataframe["hours"].sum()
+
+        category_data = (
+            dataframe
+            .groupby("category")
+            .agg(
+                activities=("id", "count"),
+                hours=("hours", "sum")
+            )
+            .reset_index()
+            .to_dict("records")
+        )
+
+        dataframe["month"] = pd.to_datetime(
+            dataframe["date"],
+            errors="coerce"
+        ).dt.strftime("%Y-%m")
+
+        monthly_data = (
+            dataframe
+            .groupby("month")
+            .size()
+            .reset_index(name="activities")
+            .to_dict("records")
+        )
+
+        certificate_rate = round(
+            (dataframe["certificate"] == "Yes").mean() * 100,
+            1
+        )
+
+    return render_template(
+        "report.html",
+        category_data=category_data,
+        monthly_data=monthly_data,
+        total_hours=total_hours,
+        certificate_rate=certificate_rate
+    )
+
+
+# ---------------- JSON API ----------------
+
+@app.route("/api/activities")
+def api_activities():
+
+    connection = get_db()
+
+    activities = connection.execute("""
+        SELECT *
+        FROM activities
+        ORDER BY date DESC
+    """).fetchall()
+
+    connection.close()
+
+    return jsonify([
+        dict(activity)
+        for activity in activities
+    ])
+
+
+# ---------------- START APPLICATION ----------------
+
+if __name__ == "__main__":
+
+    init_db()
+
+    app.run(debug=True)
