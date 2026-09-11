@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CampusTrack | Student Activity Manager</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+
+        <div class="logo">
+            🎓 CampusTrack
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/add">Add Activity</a>
+            <a href="/report">Analytics</a>
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <!-- Header -->
+        <section class="hero">
+
+            <div>
+                <p class="welcome">WELCOME BACK 👋</p>
+
+                <h1>
+                    Student Activity &
+                    <span>Internship Manager</span>
+                </h1>
+
+                <p class="subtitle">
+                    Manage your internships, workshops, certifications,
+                    projects and technical activities in one place.
+                </p>
+            </div>
+
+
+            <!-- Student Profile -->
+            <div class="profile-card">
+
+                <div class="profile-icon">
+                    👤
+                </div>
+
+                <div>
+                    <h3>{{ student["name"] }}</h3>
+
+                    <p>
+                        {{ student["enrollment"] }}
+                    </p>
+
+                    <p>
+                        {{ student["branch"] }}
+                        • Semester {{ student["semester"] }}
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Dashboard Statistics -->
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    📚
+                </div>
+
+                <div>
+                    <p>Total Activities</p>
+
+                    <h2>
+                        {{ stats["activities"] }}
+                    </h2>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    ⏱️
+                </div>
+
+                <div>
+                    <p>Total Hours</p>
+
+                    <h2>
+                        {{ "%.1f"|format(stats["hours"]) }}
+                    </h2>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    🏆
+                </div>
+
+                <div>
+                    <p>Certificates</p>
+
+                    <h2>
+                        {{ stats["certificates"] }}
+                    </h2>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    💼
+                </div>
+
+                <div>
+                    <p>Internships</p>
+
+                    <h2>
+                        {{ stats["internships"] }}
+                    </h2>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+
+            {% if messages %}
+
+                <div class="success-message">
+
+                    ✅ {{ messages[0] }}
+
+                </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- Activity Section -->
+        <section class="activity-section">
+
+            <div class="section-header">
+
+                <div>
+
+                    <p class="section-label">
+                        ACTIVITY RECORDS
+                    </p>
+
+                    <h2>
+                        My Activities
+                    </h2>
+
+                </div>
+
+
+                <a href="/add" class="primary-button">
+                    + Add Activity
+                </a>
+
+            </div>
+
+
+            <!-- Activity Table -->
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Activity</th>
+
+                            <th>Category</th>
+
+                            <th>Organizer</th>
+
+                            <th>Date</th>
+
+                            <th>Hours</th>
+
+                            <th>Certificate</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for activity in activities %}
+
+                        <tr>
+
+                            <td>
+
+                                <strong>
+                                    {{ activity["name"] }}
+                                </strong>
+
+                                {% if activity["description"] %}
+
+                                <small>
+                                    {{ activity["description"] }}
+                                </small>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                <span class="category">
+                                    {{ activity["category"] }}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+                                {{ activity["organizer"] or "-" }}
+                            </td>
+
+
+                            <td>
+                                {{ activity["date"] or "-" }}
+                            </td>
+
+
+                            <td>
+
+                                <strong>
+                                    {{ activity["hours"] }}
+                                </strong>
+
+                                hrs
+
+                            </td>
+
+
+                            <td>
+
+                                {% if activity["certificate"] == "Yes" %}
+
+                                    <span class="certificate yes">
+                                        ✓ Yes
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="certificate no">
+                                        ✕ No
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td>
+
+                                <form
+                                    method="POST"
+                                    action="/delete/{{ activity['id'] }}"
+                                    onsubmit="return confirm('Delete this activity?');"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="delete-button"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+
+                        {% else %}
+
+                        <tr>
+
+                            <td colspan="7" class="empty">
+
+                                No activities recorded yet.
+
+                                <br><br>
+
+                                <a href="/add">
+                                    Add your first activity →
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer>
+
+            <p>
+                CampusTrack • Smart College Activity Management System
+            </p>
+
+            <p>
+                Built with Python • Flask • SQLite • Pandas
+            </p>
+
+        </footer>
+
+    </main>
+
+</body>
+
+</html>
