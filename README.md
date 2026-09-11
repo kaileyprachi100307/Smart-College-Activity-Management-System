@@ -58,6 +58,10 @@ Smart-College-Activity-Management-System/
 └── static/
     └── style.css
 
+
+
+
+
 ## How to Run
 
 ### 1. Install the required libraries
