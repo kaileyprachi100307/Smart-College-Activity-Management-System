@@ -57,3 +57,47 @@ Smart-College-Activity-Management-System/
 │
 └── static/
     └── style.css
+
+## How to Run
+
+### 1. Install the required libraries
+
+```bash
+pip install -r requirements.txt
+
+2. Run the Flask application
+python app.py
+
+3. Open the application
+Open:
+http://127.0.0.1:5000
+
+The SQLite database will be created automatically when the application starts.
+
+
+Main Modules
+
+-Dashboard
+-Displays student information, total activities, participation hours, certificates, internships and activity records.
+-Activity Management
+-Students can add activities by entering the activity name, category, organizer, date, duration, certificate status, certificate ID and description.
+-Analytics
+-Uses Pandas to calculate category-wise activity statistics, total hours, monthly participation and certificate completion percentage.
+-JSON API
+-Activity information can be accessed through:
+/api/activities
+
+Database
+The application uses SQLite to store student and activity information.
+Future Scope
+Multiple student accounts
+Login and authentication
+Certificate file upload
+PDF report generation
+Advanced search and filtering
+Graphical charts
+Cloud database integration
+Admin panel
+Cloud deployment
+Purpose
+This project demonstrates the use of Python, Flask, SQLite and Pandas to develop a practical student activity management system.
