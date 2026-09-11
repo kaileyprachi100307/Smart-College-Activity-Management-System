@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CampusTrack | Add Activity</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+
+        <div class="logo">
+            🎓 CampusTrack
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/add">Add Activity</a>
+            <a href="/report">Analytics</a>
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <div class="form-page">
+
+            <div class="form-heading">
+
+                <p class="section-label">
+                    ACTIVITY MANAGEMENT
+                </p>
+
+                <h1>
+                    Add New Activity
+                </h1>
+
+                <p>
+                    Record an internship, workshop, certification,
+                    project or technical event.
+                </p>
+
+            </div>
+
+
+            <!-- Form -->
+
+            <form method="POST" class="activity-form">
+
+                <div class="form-grid">
+
+                    <!-- Activity Name -->
+
+                    <div class="form-group full">
+
+                        <label for="name">
+                            Activity Name *
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="e.g. Python Internship"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Category -->
+
+                    <div class="form-group">
+
+                        <label for="category">
+                            Category *
+                        </label>
+
+                        <select
+                            id="category"
+                            name="category"
+                            required
+                        >
+
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            <option value="Internship">
+                                Internship
+                            </option>
+
+                            <option value="Workshop">
+                                Workshop
+                            </option>
+
+                            <option value="Certification">
+                                Certification
+                            </option>
+
+                            <option value="Technical Event">
+                                Technical Event
+                            </option>
+
+                            <option value="Hackathon">
+                                Hackathon
+                            </option>
+
+                            <option value="Project">
+                                Project
+                            </option>
+
+                            <option value="Competition">
+                                Competition
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Organizer -->
+
+                    <div class="form-group">
+
+                        <label for="organizer">
+                            Organizer
+                        </label>
+
+                        <input
+                            type="text"
+                            id="organizer"
+                            name="organizer"
+                            placeholder="Organization / College"
+                        >
+
+                    </div>
+
+
+                    <!-- Date -->
+
+                    <div class="form-group">
+
+                        <label for="date">
+                            Activity Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="date"
+                            name="date"
+                        >
+
+                    </div>
+
+
+                    <!-- Hours -->
+
+                    <div class="form-group">
+
+                        <label for="hours">
+                            Duration (Hours)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="hours"
+                            name="hours"
+                            min="0"
+                            step="0.5"
+                            placeholder="e.g. 30"
+                        >
+
+                    </div>
+
+
+                    <!-- Certificate -->
+
+                    <div class="form-group">
+
+                        <label for="certificate">
+                            Certificate Available?
+                        </label>
+
+                        <select
+                            id="certificate"
+                            name="certificate"
+                        >
+
+                            <option value="Yes">
+                                Yes
+                            </option>
+
+                            <option value="No">
+                                No
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Certificate ID -->
+
+                    <div class="form-group">
+
+                        <label for="certificate_id">
+                            Certificate ID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="certificate_id"
+                            name="certificate_id"
+                            placeholder="Optional"
+                        >
+
+                    </div>
+
+
+                    <!-- Description -->
+
+                    <div class="form-group full">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="5"
+                            placeholder="Briefly describe the activity, skills learned or work performed..."
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Buttons -->
+
+                <div class="form-actions">
+
+                    <a
+                        href="/"
+                        class="secondary-button"
+                    >
+                        ← Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Save Activity
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <footer>
+
+            <p>
+                CampusTrack • Smart College Activity Management System
+            </p>
+
+            <p>
+                Built with Python • Flask • SQLite • Pandas
+            </p>
+
+        </footer>
+
+    </main>
+
+</body>
+
+</html>
